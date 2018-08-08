@@ -1,4 +1,4 @@
-`#+TITLE: Emacs configuration
+#+TITLE: Emacs configuration
 #+DESCRIPTION: Loading emacs configuration using org-babel
 
 * Installing package management
