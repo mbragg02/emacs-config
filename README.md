@@ -1,4 +1,4 @@
 # emacs-config
 
-Emacs configuration defined using org-mode.
+Load emacs configuration using org-babel.
 
