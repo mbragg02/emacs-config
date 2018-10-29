@@ -5,64 +5,59 @@
 ** Setup package & repositories
 
 #+BEGIN_SRC emacs-lisp
-(require 'package)
+  (require 'package)
 #+END_SRC
 
 Because the default setting for package-archives is to use the HTTP access to the GNU archive, set the variable to `nil` before adding the HTTPS variants.
-
 #+name: credmp-package-infrastructure
-#+begin_src emacs-lisp
-(defvar gnu '("gnu" . "https://elpa.gnu.org/packages/"))
-(defvar melpa '("melpa" . "https://melpa.org/packages/"))
-(defvar melpa-stable '("melpa-stable" . "https://stable.melpa.org/packages/"))
-(defvar org-elpa '("org" . "http://orgmode.org/elpa/"))
+#+BEGIN_SRC emacs-lisp
+  (defvar gnu '("gnu" . "https://elpa.gnu.org/packages/"))
+  (defvar melpa '("melpa" . "https://melpa.org/packages/"))
+  (defvar melpa-stable '("melpa-stable" . "https://stable.melpa.org/packages/"))
+  (defvar org-elpa '("org" . "http://orgmode.org/elpa/"))
 
-;; Add marmalade to package repos
-(setq package-archives nil)
-(add-to-list 'package-archives melpa-stable t)
-(add-to-list 'package-archives melpa t)
-(add-to-list 'package-archives gnu t)
-(add-to-list 'package-archives org-elpa t)
-#+end_src
+  ;; Add marmalade to package repos
+  (setq package-archives nil)
+  (add-to-list 'package-archives melpa-stable t)
+  (add-to-list 'package-archives melpa t)
+  (add-to-list 'package-archives gnu t)
+  (add-to-list 'package-archives org-elpa t)
+#+END_SRC
 
 Initialize the archive and refresh the contents in case there is no cached archive.
-
 #+BEGIN_SRC emacs-lisp
-(package-initialize)
+  (package-initialize)
 
-(unless (and (file-exists-p (concat init-dir "elpa/archives/gnu"))
-             (file-exists-p (concat init-dir "elpa/archives/melpa"))
-             (file-exists-p (concat init-dir "elpa/archives/melpa-stable")))
-  (package-refresh-contents))
+  (unless (and (file-exists-p (concat init-dir "elpa/archives/gnu"))
+               (file-exists-p (concat init-dir "elpa/archives/melpa"))
+               (file-exists-p (concat init-dir "elpa/archives/melpa-stable")))
+    (package-refresh-contents))
 #+END_SRC
 
 At each load the package list will be evaluated and any missing
 packages will be installed. The packages-install function deals with
 this check and takes care of any loading of the packages.
-
 #+name: credmp-package-installer
-#+begin_src emacs-lisp
-(defun packages-install (&rest packages)
-  (message "running packages-install")
-  (mapc (lambda (package)
-          (let ((name (car package))
-                (repo (cdr package)))
-            (when (not (package-installed-p name))
-              (let ((package-archives (list repo)))                 
-                (package-initialize)
-                (package-install name)))))
-        packages)
-  (package-initialize)
-  (delete-other-windows))
-#+end_src
+#+BEGIN_SRC emacs-lisp
+  (defun packages-install (&rest packages)
+    (message "running packages-install")
+    (mapc (lambda (package)
+            (let ((name (car package))
+                  (repo (cdr package)))
+              (when (not (package-installed-p name))
+                (let ((package-archives (list repo)))                 
+                  (package-initialize)
+                  (package-install name)))))
+          packages)
+    (package-initialize)
+    (delete-other-windows))
+#+END_SRC
 
 ** Setup 'use-package'
 
 use-package provides a nice macro mechanism to help keep the various packages and pachage configuration organised.
 It is the only package that is to be installed in this manner. All other packages will be installed through 'use-package'
-
-#+name: credmp-package-installer
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   ;; Install extensions if they're missing
   (defun init--install-packages ()
     (message "Lets install some packages")
@@ -74,200 +69,236 @@ It is the only package that is to be installed in this manner. All other package
     (error
      (package-refresh-contents)
      (init--install-packages)))
-#+end_src
+#+END_SRC
 
 * Moving around
 
 Be sure to just ask for y/n instead of yes/no.
-
 #+BEGIN_SRC emacs-lisp
-(fset 'yes-or-no-p 'y-or-n-p)
+  (fset 'yes-or-no-p 'y-or-n-p)
 #+END_SRC
 
 Set the convenient kill-this-buffer global key
-
-#+begin_src emacs-lisp
-(global-set-key (kbd "C-x k") 'kill-this-buffer)
-#+end_src
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "C-x k") 'kill-this-buffer)
+#+END_SRC
 
 Smooth scrolling by default. control + scroll for fast.
-#+begin_src emacs-lisp
-(setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil)))
-(setq mouse-wheel-progressive-speed nil)
-#+end_src
+#+BEGIN_SRC emacs-lisp
+  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil)))
+  (setq mouse-wheel-progressive-speed nil)
+#+END_SRC
 
 Helm
-
-#+begin_src emacs-lisp
-(use-package helm
-:ensure t
-:diminish helm-mode
-:config
-(global-set-key (kbd "M-x") #'helm-M-x)
-(global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
-(global-set-key (kbd "C-x C-f") #'helm-find-files)
-(helm-mode 1))
-#+end_src
+#+BEGIN_SRC emacs-lisp
+  (use-package helm
+    :ensure t
+    :diminish helm-mode
+    :config
+      (global-set-key (kbd "M-x") #'helm-M-x)
+      (global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
+      (global-set-key (kbd "C-x C-f") #'helm-find-files)
+      (global-set-key (kbd "C-x C-b") #'helm-mini)
+      (helm-mode 1)
+    :custom
+      (helm-split-window-in-side-p t)
+      (helm-split-window-in-side-p t)
+      (helm-split-window-default-side 'below))
+#+END_SRC
 
 Windows management
+#+BEGIN_SRC emacs-lisp
+  (use-package ace-window
+    :ensure t
+    :config
+      (global-set-key (kbd "C-x o") 'ace-window))
 
-#+name: credmp-window
-#+begin_src emacs-lisp
-(use-package ace-window
-  :ensure t
-  :config
-    (global-set-key (kbd "C-x o") 'ace-window))
-
-(use-package ace-jump-mode
-  :ensure t
-  :config
-    (define-key global-map (kbd "C-c SPC") 'ace-jump-mode))
-#+end_src
+  (use-package ace-jump-mode
+    :ensure t
+    :config
+      (define-key global-map (kbd "C-c SPC") 'ace-jump-mode))
+#+END_SRC
 
 * Discovery
 
 which-key is a conventient package that shows a pop-up buffer of available key completions. Start typing a key command a see a list of avaialble commands.
-
 #+BEGIN_SRC emacs-lisp
-(use-package which-key
-  :ensure t
-  :diminish which-key-mode
-  :config
-    (which-key-mode))
+  (use-package which-key
+    :ensure t
+    :diminish which-key-mode
+    :config
+      (which-key-mode))
 #+END_SRC
 
 Enable and store recently opened files
 #+BEGIN_SRC emacs-lisp
-(recentf-mode 1)
-(setq recentf-max-menu-items 25)
-(setq-default recent-save-file "~/.emacs.d/recentf")
+  (recentf-mode 1)
+  (setq recentf-max-menu-items 25)
+  (setq-default recent-save-file "~/.emacs.d/recentf")
 #+END_SRC
 
 * Environment
 
-#+name: starter-kit-osX-workaround
-#+begin_src emacs-lisp
-(if (or (eq system-type 'darwin) 
-        (eq system-type 'berkeley-unix))
-      (setq system-name (car (split-string system-name "\\."))))
+#+BEGIN_SRC emacs-lisp
+  (if (or (eq system-type 'darwin) 
+          (eq system-type 'berkeley-unix))
+        (setq system-name (car (split-string system-name "\\."))))
 
-(setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
-(push "/usr/local/bin" exec-path)
-#+end_src
+  (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH") ":/Library/TeX/texbin"))
+  (push "/usr/local/bin" exec-path)
+#+END_SRC
 
 Turn off mouse interface early in startup to avoid momentary display.
+#+BEGIN_SRC emacs-lisp
+  (menu-bar-mode 1)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+#+END_SRC
 
-#+name: credmp-gui
-#+begin_src emacs-lisp
-(menu-bar-mode 1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-#+end_src
-
-Start emacs fullscreen
-
-#+begin_src emacs-lisp
-(add-hook 'window-setup-hook 'toggle-frame-fullscreen t)
-#+end_src
+Start emacs full screen
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'window-setup-hook 'toggle-frame-fullscreen t)
+#+END_SRC
 
 Store all backup and autosave files in the tmp directory
-
-#+begin_src emacs-lisp
-(setq backup-directory-alist
-      `((".*" . ,temporary-file-directory)))
-(setq auto-save-file-name-transforms
-      `((".*" ,temporary-file-directory t)))
-#+end_src
+#+BEGIN_SRC emacs-lisp
+  (setq backup-directory-alist
+        `((".*" . ,temporary-file-directory)))
+  (setq auto-save-file-name-transforms
+        `((".*" ,temporary-file-directory t)))
+#+END_SRC
 
 Change modifiers to be mac friendly
-
-#+name: credmp-keys
-#+begin_src emacs-lisp
-(setq mac-option-modifier 'none)
-(setq mac-command-modifier 'meta)
-(setq ns-function-modifier 'hyper)
-#+end_src
+#+BEGIN_SRC emacs-lisp
+  (setq mac-option-modifier 'none)
+  (setq mac-command-modifier 'meta)
+  (setq ns-function-modifier 'hyper)
+#+END_SRC
 
 Don't open files from the workspace in a new frame
-
-#+name: credmp-trash
-#+begin_src emacs-lisp
-(setq ns-pop-up-frames nil)
-#+end_src
+#+BEGIN_SRC emacs-lisp
+  (setq ns-pop-up-frames nil)
+#+END_SRC
 
 Misc stuff
+#+BEGIN_SRC emacs-lisp
+  (setq inhibit-startup-message t)
 
-#+name: credmp-spell
-#+begin_src emacs-lisp
-(setq inhibit-startup-message t)
+  (defun iwb ()
+    "indent whole buffer"
+    (interactive)
+    (delete-trailing-whitespace)
+    (indent-region (point-min) (point-max) nil)
+    (untabify (point-min) (point-max)))
 
-(defun iwb ()
-  "indent whole buffer"
-  (interactive)
-  (delete-trailing-whitespace)
-  (indent-region (point-min) (point-max) nil)
-  (untabify (point-min) (point-max)))
+  (global-set-key (kbd "C-c n") 'iwb)
 
-(global-set-key (kbd "C-c n") 'iwb)
+  (electric-pair-mode t)
+#+END_SRC
 
-(electric-pair-mode t)
+Add numbers to the windows
+#+BEGIN_SRC emacs-lisp
+  (use-package window-numbering
+    :ensure t
+    :config
+    (window-numbering-mode)
+    ;; (spaceline-toggle-window-number-off)
+    )
+#+END_SRC
 
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package window-numbering
- :ensure t
- :config
- (window-numbering-mode)
- ;;(spaceline-toggle-window-number-off)
-)
-#+end_src
+eyebrowse window layout manager
+#+BEGIN_SRC emacs-lisp
+  (use-package eyebrowse
+    :diminish eyebrowse-mode
+    :config 
+    (eyebrowse-mode t)
+    (setq eyebrowse-new-workspace t))
+#+END_SRC
 
 * Look and feel
 
 Set the theme to use
-#+name: credmp-package-installer
-#+begin_src emacs-lisp
-(use-package nimbus-theme
-  :ensure t
-  :config
-    (load-theme 'nimbus))
-#+end_src
+#+BEGIN_SRC emacs-lisp
+  (use-package nimbus-theme
+    :ensure t
+    :config
+      (load-theme 'nimbus))
+#+END_SRC
 
 Add all the icons
 #+BEGIN_SRC emacs-lisp
-(use-package all-the-icons
-  :ensure t)
+  (use-package all-the-icons
+    :ensure t)
+
+  (use-package all-the-icons-dired
+    :ensure t)
+#+END_SRC
+
+Add sidebar navigation
+#+BEGIN_SRC emacs-lisp
+  ;; dired-sidebar currently disabled in favour of neotree
+  (use-package dired-sidebar
+    :bind (("C-x C-n" . dired-sidebar-toggle-sidebar))
+    :ensure t
+    :disabled
+    :commands (dired-sidebar-toggle-sidebar)
+    :config (setq dired-sidebar-theme 'icons))
+
+  (use-package neotree
+    :ensure t
+    :config
+      (global-set-key [f8] 'neotree-toggle)
+    :custom
+      (neo-theme (if (display-graphic-p) 'icons 'arrow)))
+
+  ;; (setq dired-use-ls-dired nil)
+  ;; (add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
 #+END_SRC
 
 On start-up, show the recently opened files buffer
 #+BEGIN_SRC emacs-lisp
-(setq initial-buffer-choice 'recentf-open-files)
+  (setq initial-buffer-choice 'recentf-open-files)
 #+END_SRC
 
 Show line numbers globally
 #+BEGIN_SRC emacs-lisp
-(global-linum-mode t)
+  (global-linum-mode t)
 #+END_SRC
 
 Spell checking as you type
 #+BEGIN_SRC emacs-lisp
-(use-package flyspell
-  :diminish 'flyspell-mode)
+  (use-package flyspell
+    :diminish 'flyspell-mode)
 #+END_SRC
 
-Hide some additional built in minor modes that don't have packages.
+Force the Calendar buffer to split below when in org-mode
 #+BEGIN_SRC emacs-lisp
-(diminish 'visual-line-mode)
+  (defun my-window-displaying-org-p (window)
+      (equal (with-current-buffer (window-buffer window) major-mode)
+          'org-mode)) 
+
+  (defun display-calendar-buffer (buffer alist)
+    (let ((org-window (car (remove-if-not #'my-window-displaying-org-p (window-list)))))
+      (when org-window
+        (let ((desired-window (split-window org-window nil 'below)))
+          (set-window-buffer desired-window buffer)
+          desired-window))))
+
+  (add-to-list 'display-buffer-alist (cons "\\*Calendar\\*" (cons #'display-calendar-buffer nil)))
+#+END_SRC
+
+Hide some additional built in minor modes that arn't packages.
+#+BEGIN_SRC emacs-lisp
+  (diminish 'visual-line-mode)
 #+END_SRC
 
 ** Mode line
 
 Hide minor modes from the mode-line
-#+begin_src emacs-lisp
-(use-package diminish
-  :ensure t)
-#+end_src
+#+BEGIN_SRC emacs-lisp
+  (use-package diminish
+    :ensure t)
+#+END_SRC
 
 #+BEGIN_SRC emacs-lisp
 ;;(use-package mode-icons
@@ -278,53 +309,150 @@ Hide minor modes from the mode-line
 
 
 #+BEGIN_SRC emacs-lisp
-(use-package powerline
-  :ensure t
-  :init
-    (setq powerline-default-separator 'utf-8)
-  :config
-    (powerline-default-theme))
+  (use-package powerline
+    :ensure t
+    :init
+      (setq powerline-default-separator 'utf-8)
+    :config
+      (powerline-default-theme))
 #+END_SRC
 
 Powerline theme from Spacemacs
 #+BEGIN_SRC emacs-lisp
-(use-package spaceline
-  :ensure t
-  :config
-    (require 'spaceline-config)
-    (spaceline-spacemacs-theme))
+  (use-package spaceline
+    :ensure t
+    :config
+      (require 'spaceline-config)
+      (spaceline-spacemacs-theme)
+      (spaceline-helm-mode))
 #+END_SRC
 * Writing
 
 Markdown mode
-
 #+BEGIN_SRC emacs-lisp
-(use-package markdown-mode
-  :ensure t)
+  (use-package markdown-mode
+    :ensure t)
 #+END_SRC
 
+org-journal mode
 #+BEGIN_SRC emacs-lisp
-(use-package org-journal
-  :ensure t)
+  (use-package org-journal
+    :ensure t
+    :init
+      (setq org-journal-dir "~/Documents/org/journal/")
+    :bind
+      (("C-c j" . org-journal-new-entry))
+    :hook
+      (turn-on-flyspell))
 #+END_SRC
 
 Show src code in native styling in org documents
 #+BEGIN_SRC emacs-lisp
-(setq org-src-fontify-natively t)
+  (setq org-src-fontify-natively t)
 #+END_SRC
 
-Turn on spell checking in org & journal mode
+Enable spell checking in org-mode
 #+BEGIN_SRC emacs-lisp
-(add-hook 'org-mode-hook 'turn-on-flyspell)
-(add-hook 'org-journal-mode-hook 'turn-on-flyspell)
+  (add-hook 'org-mode-hook 'turn-on-flyspell)
+#+END_SRC
+
+Enable additional org-babel languages (i.e plantuml)
+#+BEGIN_SRC emacs-lisp
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '(;; other Babel languages
+     (plantuml . t)))
+
+  (setq org-plantuml-jar-path
+        (expand-file-name "~/Documents/org/scripts/plantuml.jar"))
+#+END_SRC
+
+Enable org-indent-mode by default
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'org-mode-hook 'org-indent-mode)
+  (eval-after-load 'org-indent '(diminish 'org-indent-mode))
+#+END_SRC
+
+'Get things done' (gtd) setup
+#+BEGIN_SRC emacs-lisp
+  (setq org-agenda-window-setup 'current-window)
+  (define-key global-map "\C-cl" 'org-store-link)
+
+  (setq org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)" "CANCELED(c)")))
+
+  (define-key global-map "\C-cc" 'org-capture)
+  (setq org-capture-templates '(("t" "Todo" entry
+                                 (file "~/Documents/org/inbox.org")
+                                 "* TODO %i%?")
+
+                                ("r" "Reminder" entry
+                                 (file "~/Documents/org/reminder.org")
+                                 "* %i%? \n %U")
+
+                                ("R" "Reference" entry
+                                 (file "~/Documents/org/reference.org")
+                                 "* %i%? \n %U")
+                                
+                                ("c" "Clojure reference" entry
+                                 (file "~/Documents/org/reference.org")
+                                 "* %i%? \n %U \n #+BEGIN_SRC clojure \n\n #+END_SRC")
+                                ))
+
+  (define-key global-map "\C-ca" 'org-agenda)
+  (setq org-agenda-files '("~/Documents/org/inbox.org"
+                           "~/Documents/org/projects.org"
+                           "~/Documents/org/reminder.org"))
+
+  ;; Enable refile to root of a file
+  (setq org-refile-use-outline-path 'file)
+
+  ;; Show full path of headings in helm when refiling
+  (setq org-outline-path-complete-in-steps nil)
+
+  (setq org-refile-targets '(("~/Documents/org/projects.org" :maxlevel . 3)
+                             ("~/Documents/org/someday.org" :level . 1)
+                             ("~/Documents/org/reference.org" :level . 1)
+                             ("~/Documents/org/reminder.org" :maxlevel . 2)))
+
+  ;; Additional custom agenda shortcuts which show the 'next' actionable task for a given tag. i.e. Only the TODO for each project
+  (setq org-agenda-custom-commands
+        '(("w" "At work" tags-todo "@work"
+           ((org-agenda-overriding-header "Next work tasks")
+            (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))
+
+          ("h" "At home" tags-todo "@home"
+           ((org-agenda-overriding-header "Next home tasks")
+            (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))
+
+          ("p" "Personal" tags-todo "@personal"
+           ((org-agenda-overriding-header "Next 'Personal' tasks")
+            (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))))
+
+  (defun my-org-agenda-skip-all-siblings-but-first ()
+    "Skip all but the first non-done entry."
+    (let (should-skip-entry)
+      (unless (org-current-is-todo)
+        (setq should-skip-entry t))
+      (save-excursion
+        (while (and (not should-skip-entry) (org-goto-sibling t))
+          (when (org-current-is-todo)
+            (setq should-skip-entry t))))
+      (when should-skip-entry
+        (or (outline-next-heading)
+            (goto-char (point-max))))))
+
+  (defun org-current-is-todo ()
+    (string= "TODO" (org-get-todo-state)))
+
+  (defun gtd ()
+    (interactive)
+    (find-file "~/Documents/org/projects.org"))
 #+END_SRC
 
 * Programming
 ** Look and feel
 
-Enable the prettify symbols mode. It will translate (fn) to the lambda
-sign.
-
+Enable the prettify symbols mode.
 #+BEGIN_SRC emacs-lisp
   (global-prettify-symbols-mode 1)
 #+END_SRC
@@ -332,129 +460,121 @@ sign.
 ** Syntaxs
 
 #+BEGIN_SRC emacs-lisp
-(use-package yaml-mode
+  (use-package yaml-mode
+    :ensure t)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package terraform-mode
   :ensure t)
 #+END_SRC
 
-** LISP Editing
+** Lisp editing
 
-#+name: credmp-lisp-editing
 #+BEGIN_SRC emacs-lisp
-(use-package paredit
-  :ensure t
-  :diminish paredit-mode
-  :config
-    (add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
-    (add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
-    (add-hook 'ielm-mode-hook             #'enable-paredit-mode)
-    (add-hook 'lisp-mode-hook             #'enable-paredit-mode)
-    (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
-    (add-hook 'scheme-mode-hook           #'enable-paredit-mode)
-  :bind (("C-c d" . paredit-forward-down)
-            ("M-<right>" . paredit-forward-slurp-sexp)
-            ("M-<left>" . paredit-forward-barf-sexp)
-            ("M-[" . paredit-wrap-sexp)))
+  (use-package paredit
+    :ensure t
+    :diminish paredit-mode
+    :commands paredit
+    :config
+      (add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
+      (add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
+      (add-hook 'ielm-mode-hook             #'enable-paredit-mode)
+      (add-hook 'lisp-mode-hook             #'enable-paredit-mode)
+      (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
+      (add-hook 'scheme-mode-hook           #'enable-paredit-mode)
+    ;;:hook (emacs-lisp-mode
+     ;;      eval-expression-minibuffer-setup
+      ;;     ielm-mode
+       ;;    lisp-mode
+        ;;   lisp-interactive-mode
+        ;;   scheme-mode)
+    :bind (("C-c d" . paredit-forward-down)
+           ("M-<right>" . paredit-forward-slurp-sexp)
+           ("M-<left>" . paredit-forward-barf-sexp)
+           ("M-[" . paredit-wrap-sexp)))
 
 
-(use-package paredit-everywhere
-  :ensure t
-  :diminish paredit-everywhere-mode
-  :config
-    (add-hook 'list-mode-hook #'paredit-everywhere-mode))
+  (use-package paredit-everywhere
+    :ensure t
+    :diminish paredit-everywhere-mode
+    :hook lisp-mode
+  )
 
-(use-package highlight-parentheses
-  :ensure t
-  :diminish highlight-parentheses-mode   
-  :config
-    (add-hook 'emacs-lisp-mode-hook
-              (lambda()
-                (highlight-parentheses-mode))))
+  (use-package highlight-parentheses
+    :ensure t
+    :diminish highlight-parentheses-mode
+    :hook lisp-mode)
 
-(use-package rainbow-delimiters
-  :ensure t
-  :config
-    (add-hook 'lisp-mode-hook
-              (lambda()
-                (rainbow-delimiters-mode))))
+  (use-package rainbow-delimiters
+    :ensure t
+    :hook (prog-mode .  (lambda() (rainbow-delimiters-mode)))
+  )
 
-(global-highlight-parentheses-mode)
+  (global-highlight-parentheses-mode)
 #+END_SRC
 
 ** Auto completion
 
 #+BEGIN_SRC emacs-lisp
-(use-package company
-  :ensure t  
-  :bind (("C-c /". company-complete))
-  :config
-    (global-company-mode))
+  (use-package company
+    :ensure t  
+    :bind (("C-c /". company-complete))
+    :config
+      (global-company-mode))
 #+END_SRC
 
 ** Version Control
 
 Magit for git interaction
-
 #+BEGIN_SRC emacs-lisp
-(use-package magit
-  :ensure t   
-  :bind (("C-c m" . magit-status)))
-#+END_SRC
-
-Display the buffer state in the fringe
-
-#+BEGIN_SRC emacs-lisp
-;;  (use-package git-gutter-fringe
-;;    :ensure t
-;;    :diminish git-gutter-mode
-;;    :config
-;;    (setq git-gutter-fr:side 'right-fringe)
-;;    (set-face-foreground 'git-gutter-fr:modified "#63747c")
-;;    (set-face-foreground 'git-gutter-fr:added    "#63747c")
-;;    (set-face-foreground 'git-gutter-fr:deleted  "#63747c")
-;;    (global-git-gutter-mode +1))
+  (use-package magit
+    :ensure t   
+    :bind (("C-c m" . magit-status)))
 #+END_SRC
 
 ** Clojure
 
-#+begin_src emacs-lisp
-(use-package cider
-  :ensure t
-  :pin melpa-stable
-  :config
-    (add-hook 'cider-repl-mode-hook #'company-mode)
-    (add-hook 'cider-mode-hook #'company-mode)
-    (add-hook 'cider-mode-hook #'eldoc-mode)
-    (add-hook 'clojure-mode-hook #'paredit-mode)
-    (setq cider-repl-use-pretty-printing t)
-    (setq cider-repl-display-help-banner nil)
-  :bind (("M-r" . cider-namespace-refresh)
-         ("C-c r" . cider-repl-reset)
-         ("C-c ." . cider-reset-test-run-tests)))
+#+BEGIN_SRC emacs-lisp
+  (use-package cider
+    :ensure t
+    :pin melpa-stable
+    :config
+      (add-hook 'cider-repl-mode-hook #'company-mode)
+      (add-hook 'cider-mode-hook #'company-mode)
+      (add-hook 'cider-mode-hook #'eldoc-mode)
+      (add-hook 'clojure-mode-hook #'paredit-mode)
+    :bind (("M-r" . cider-namespace-refresh)
+           ("C-c r" . cider-repl-reset)
+           ("C-c ." . cider-reset-test-run-tests))
+    :custom
+       (cider-repl-use-pretty-printing t)
+       (cider-repl-display-help-banner nil))
 
-
-(use-package clj-refactor
-  :ensure t
-  :config
-    (add-hook 'clojure-mode-hook (lambda ()
-                                   (clj-refactor-mode 1)
-                                   ;; insert keybinding setup here
-                                   ))
-    (cljr-add-keybindings-with-prefix "C-c C-m")
-    (setq cljr-warn-on-eval nil)
-  :bind ("C-c '" . hydra-cljr-help-menu/body))
-#+end_src
+  (use-package clj-refactor
+    :ensure t
+    :config
+      (add-hook 'clojure-mode-hook (lambda ()
+                                     (clj-refactor-mode 1)
+                                     ;; insert keybinding setup here
+                                     ))
+      (cljr-add-keybindings-with-prefix "C-c C-m")
+    :custom
+      (cljr-warn-on-eval nil))
+#+END_SRC
 ** Projects
 
-#+begin_src emacs-lisp
-(use-package projectile
-  :ensure t
-  :config
-    (projectile-global-mode)
-    (setq projectile-enable-caching t))
+#+BEGIN_SRC emacs-lisp
+  (use-package projectile
+    :ensure t
+    :custom
+       (projectile-enable-caching t)
+    :config
+      (projectile-global-mode))
 
-(use-package helm-projectile
-  :ensure t
-  :bind ("M-t" . helm-projectile-find-file)
-  :config
-    (helm-projectile-on))
-#+end_src
+  (use-package helm-projectile
+    :ensure t
+    :bind ("M-t" . helm-projectile-find-file)
+    :config
+      (helm-projectile-on))
+#+END_SRC
