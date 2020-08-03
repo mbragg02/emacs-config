@@ -27,7 +27,6 @@ Because the default setting for package-archives is to use the HTTP access to th
 Initialize the archive and refresh the contents in case there is no cached archive.
 #+BEGIN_SRC emacs-lisp
   (package-initialize)
-
   (unless (and (file-exists-p (concat init-dir "elpa/archives/gnu"))
                (file-exists-p (concat init-dir "elpa/archives/melpa"))
                (file-exists-p (concat init-dir "elpa/archives/melpa-stable")))
@@ -392,16 +391,17 @@ Enable org-indent-mode by default
                                 ("R" "Reference" entry
                                  (file "~/Documents/org/reference.org")
                                  "* %i%? \n %U")
-                                
+
                                 ("c" "Clojure reference" entry
                                  (file "~/Documents/org/reference.org")
-                                 "* %i%? \n %U \n #+BEGIN_SRC clojure \n\n #+END_SRC")
-                                ))
+                                 "* %i%? \n %U \n #+BEGIN_SRC clojure \n\n #+END_SRC")))
 
   (define-key global-map "\C-ca" 'org-agenda)
   (setq org-agenda-files '("~/Documents/org/inbox.org"
                            "~/Documents/org/projects.org"
-                           "~/Documents/org/reminder.org"))
+                           "~/Documents/org/reminder.org"
+                           "~/Documents/org/ed.org"
+                           "~/Documents/org/mb.org"))
 
   ;; Enable refile to root of a file
   (setq org-refile-use-outline-path 'file)
@@ -469,6 +469,25 @@ Enable the prettify symbols mode.
   :ensure t)
 #+END_SRC
 
+#+BEGIN_SRC emacs-lisp
+(use-package jsonnet-mode
+  :ensure t)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package feature-mode
+  :ensure t)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package julia-mode
+    :ensure t)
+
+(use-package ess
+    :ensure t)
+
+#+END_SRC
+
 ** Lisp editing
 
 #+BEGIN_SRC emacs-lisp
@@ -531,6 +550,8 @@ Magit for git interaction
   (use-package magit
     :ensure t   
     :bind (("C-c m" . magit-status)))
+
+(setq magit-section-visibility-indicator nil)
 #+END_SRC
 
 ** Clojure
@@ -562,6 +583,12 @@ Magit for git interaction
     :custom
       (cljr-warn-on-eval nil))
 #+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package kaocha-runner
+  :ensure t)
+#+END_SRC
+
 ** Projects
 
 #+BEGIN_SRC emacs-lisp
