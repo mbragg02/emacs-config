@@ -75,6 +75,8 @@
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
 
+;; unbind the right option modifier so that I can use #
+(setq-default mac-right-option-modifier nil)
 
 ;; package configurations ;;
 
