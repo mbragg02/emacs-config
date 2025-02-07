@@ -9,9 +9,6 @@
 ;; Highlght the current line
 (global-hl-line-mode t)
 
-;; Line number mode
-(global-linum-mode t)
-
 ;; Set the command key to use mac meta
 (setq mac-command-modifier 'meta)
 
